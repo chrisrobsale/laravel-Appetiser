@@ -11,6 +11,16 @@
             <input type="text" class="form-control" id="floatingInput" placeholder="****" name="verifyCode">
             <label for="floatingInput">Verification Code</label>
         </div>
+
+        @if($errors->any())
+            <div>
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         <button class="w-100 btn btn-md btn-primary" type="submit">Verify Account</button>
         
     </form>

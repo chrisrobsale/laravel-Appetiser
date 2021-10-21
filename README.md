@@ -5,7 +5,7 @@ This is a user registration system using Appetiser's Baseplate API. It contains 
 - Login Page
 - Registration Page
 - Verification Page
-- Welcome Page
+- Success Page
 
 ### How to build my Laravel App
 1. Download and Install the following 3rd-party applications:

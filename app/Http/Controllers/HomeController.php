@@ -121,25 +121,26 @@ class HomeController extends Controller
             'verifyCode' => 'required|min:5|max:5'
         ]);
         $data = $req->input();
-        if($data['verifyCode'] != "00000"){
-            $req->session()->flash('ErrorMessage', "Invalid Code");
-            return redirect('verification');
+        
+        $payload = [
+            "token"=> $data["verifyCode"],
+            "via"=> "email"
+        ];
+        $userToken = $req->session()->get('registeredUserToken');
+        $verifyUser = json_decode($this->postApiWithToken($payload, "https://api.baseplate.appetiserdev.tech/api/v1/auth/verification/verify", $userToken));
+        if($verifyUser->http_status == '200'){
+            session()->pull('registeredUser');
+            session()->pull('registeredUserToken');
+            return redirect('/');
         }else{
-            $payload = [
-                "token"=> $data["verifyCode"],
-                "via"=> "email"
-            ];
-            $userToken = $req->session()->get('registeredUserToken');
-            $verifyUser = json_decode($this->postApiWithToken($payload, "https://api.baseplate.appetiserdev.tech/api/v1/auth/verification/verify", $userToken));
-            if($verifyUser->http_status == '200'){
-                session()->pull('registeredUser');
-                session()->pull('registeredUserToken');
-                return redirect('/');
+            $errMessage = "";
+            if($verifyUser->http_status){
+                $errMessage = $verifyUser->message;
             }else{
-                $req->session()->flash('ErrorMessage', "Internal Server Error");
-                return redirect('verification');
+                $errMessage = "Internal Server Error";
             }
-            
+            $req->session()->flash('ErrorMessage', $errMessage);
+            return redirect('verification');
         }
     }
 
@@ -149,7 +150,9 @@ class HomeController extends Controller
     }
 
     public function postApiWithToken($payload, $apiUrl, $userToken){
-        $apiRequest = Http::withToken($userToken)->post($apiUrl, $payload);
+        $apiRequest = Http::withHeaders([
+            'Accept' => 'application/json'
+        ])->withToken($userToken)->post($apiUrl, $payload);
         return $apiRequest;
     }
 }
